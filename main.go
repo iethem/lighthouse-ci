@@ -53,4 +53,25 @@ func LighthouseCi(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func HeadlessChrome(w http.ResponseWriter, r *http.Request) {}
+func HeadlessChrome(w http.ResponseWriter, r *http.Request) {
+	// var proxy = ""
+	// if len(os.Getenv("HTTPPROXY")) > 0 {
+	// 	proxy = "--proxy-server=" + os.Getenv("HTTPPROXY")
+	// }
+
+	var lighthouse Lighthouse
+	json.NewDecoder(r.Body).Decode(&lighthouse)
+
+	args := []string{"--headless", "--disable-gpu", "--dump-dom", "--lang=en-US", "--timeout=120000", "--ipc-connection-timeout=120000", "--window-size=1280,1696", lighthouse.Url}
+	cmd := exec.Command("/opt/google/chrome/chrome", args...)
+	cmdOutput := &bytes.Buffer{}
+	cmd.Stdout = cmdOutput
+	fmt.Println(args)
+	err := cmd.Run()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		fmt.Fprint(w, err)
+	} else {
+		fmt.Fprint(w, string(cmdOutput.Bytes()))
+	}
+}
