@@ -43,13 +43,14 @@ func LighthouseCi(w http.ResponseWriter, r *http.Request) {
 	cmd := exec.Command("lighthouse", args...)
 	cmdOutput := &bytes.Buffer{}
 	cmd.Stdout = cmdOutput
-	fmt.Println(args)
+	// fmt.Println(args)
 	err := cmd.Run()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		fmt.Fprint(w, err)
 	} else {
 		fmt.Fprint(w, string(cmdOutput.Bytes()))
+		log.Printf("OK: " + lighthouse.Url)
 	}
 }
 
@@ -57,7 +58,7 @@ func HeadlessChrome(w http.ResponseWriter, r *http.Request) {
 	var lighthouse Lighthouse
 	json.NewDecoder(r.Body).Decode(&lighthouse)
 
-	args := []string{"--headless", "--disable-gpu", "--dump-dom", "--lang=en-US", "--timeout=120000", "--ipc-connection-timeout=120000", "--window-size=1280,1696"}
+	args := []string{"--headless", "--disable-gpu", "--dump-dom", "--lang=en-US", "--no-sandbox", "--timeout=120000", "--ipc-connection-timeout=120000", "--window-size=1280,1696"}
 
 	if len(os.Getenv("HTTPPROXY")) > 0 {
 		args = append(args, "--proxy-server="+os.Getenv("HTTPPROXY"))
@@ -65,15 +66,16 @@ func HeadlessChrome(w http.ResponseWriter, r *http.Request) {
 
 	args = append(args, lighthouse.Url)
 
-	cmd := exec.Command("/opt/google/chrome/chrome", args...)
+	cmd := exec.Command("/opt/google/chrome-unstable/chrome", args...)
 	cmdOutput := &bytes.Buffer{}
 	cmd.Stdout = cmdOutput
-	fmt.Println(args)
+	// fmt.Println(args)
 	err := cmd.Run()
 	if err != nil {
 		fmt.Fprintln(os.Stderr, err)
 		fmt.Fprint(w, err)
 	} else {
 		fmt.Fprint(w, string(cmdOutput.Bytes()))
+		log.Printf("OK: " + lighthouse.Url)
 	}
 }
